@@ -56,7 +56,13 @@ for i, sentence in enumerate(sentence_list):
     stopwords = nltk.corpus.stopwords.words('english')
     stopwords.append(',') #불용어 추가
     stopwords.append('?')
+    stopwords.append('.')
+    stopwords.append('..')
     stopwords.append('...')
+    stopwords.append('.....')
+    stopwords.append('!')
+    stopwords.append('``')
+    stopwords.append('--')
 
     clean_list = []
     for token in token_list:
@@ -80,6 +86,10 @@ for i, sentence in enumerate(sentence_list):
     words.extend(clean_filter_list) #모든 list 총합해서 하나로
     #cf. append= 모든 list 나열만 함
 
+    #5. '-' 포함 토큰 제거
+    clean_list = list(filter(lambda x: "-" not in x, clean_filter_list))
+    print('6 >>>>>> {}'.format(clean_list))
+    words.extend(clean_list)
 
 print(words)
 
