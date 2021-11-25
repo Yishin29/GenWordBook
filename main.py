@@ -1,12 +1,21 @@
 # MAIN PROGRAM
 
+import time
 import pprint
 import requests
 from bs4 import BeautifulSoup
 import nltk
+import pandas as pd
+import numpy as np
+from PIL import Image
+from wordcloud import WordCloud
 
 # nltk.download('punkt')
 # nltk.download('stopwords')
+
+# conda install c- anaconda numpy
+# conda install c- anaconda pandas
+# conda install -c conda-forge wordcloud
 
 ####################
 # 1.미드 대본 수집 #
@@ -66,7 +75,7 @@ for i, sentence in enumerate(sentence_list):
     print('6 >>>>>> {}'.format(clean_list))
     words.extend(clean_list)
 
-#빈도수 순으로 나열 및 시각화
+#3.빈도수 순으로 나열 및 시각화
 print('===========================')
 print('Total word count: {}'.format(len(words)))
 
@@ -81,6 +90,37 @@ text = nltk.Text(words, name='NMSC') #중복 제거 전 단어장 입력으로 �
 
 pprint.pprint(text.vocab().most_common(20))
 
-#다음 영어사전 단어정보 수집 및 매칭
-#Excel로 저장
-#Wordcloud로 시각화
+#4.다음 영어사전 단어정보 수집 및 매칭
+def get_dict(word):
+    time.sleep(1)
+    url = ('https://dic.daum.net/word/view.do?q={}'.format(word))
+
+    result = requests.get(url)
+    doc = BeautifulSoup(result.text, 'html.parser')
+    meaning_list = doc.select('div.cleanword_type ul.list_search > li')
+
+    # 해당 단어 뜻 없는 경우: 함수 종료 후 return
+    if len(meaning_list) < 1:
+        return
+
+    word_mean_list = [word]
+    for mean in meaning_list:
+        word_mean = mean.select('span')[-1].get_text()
+        word_mean_list.append(word_mean)
+
+    return word_mean_list
+
+total_dict_list = [] #전체
+for word in unique_words:
+    word_mean_list = get_dict(word)
+    if word_mean_list != None:
+        total_dict_list.append(word_mean_list)
+
+pprint.pprint(total_dict_list)
+
+#5.Excel로 저장
+col_names = ['word', 'mean_1', 'mean_2', 'mean_3', 'mean_4', 'mean_5']
+df_dict = pd.DataFrame(total_dict_list, columns=col_names)
+df.dict.to_excel('words.xlsx', index=False)
+
+#6.Wordcloud로 시각화
