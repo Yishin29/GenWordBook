@@ -28,11 +28,11 @@ sentence_list = doc.select('p > font')
 
 words = []  # 영단어장
 for i, sentence in enumerate(sentence_list):
-    print('=====================================================================================')
+    #print('=====================================================================================')
     sentence_txt = sentence.get_text().strip()
     start_idx = sentence_txt.find(':')
     clean_sentence = sentence_txt[start_idx+2:]
-    pprint.pprint('1 > {}'.format(clean_sentence))
+    #pprint.pprint('1 > {}'.format(clean_sentence))
 
     #########################
     # 2.단어만 추출(전처리) #
@@ -41,7 +41,7 @@ for i, sentence in enumerate(sentence_list):
     # 자연어 처리 => NLTK
     # 2-1.토큰화(Tokenization)
     token_list = nltk.word_tokenize(clean_sentence)
-    print('2 >> {}'.format(token_list))
+    #print('2 >> {}'.format(token_list))
 
     # 2-2.불용어(StopWord) 제거
     stopwords = nltk.corpus.stopwords.words('english')
@@ -54,7 +54,7 @@ for i, sentence in enumerate(sentence_list):
     for token in token_list:
         if token.lower() not in stopwords:
             clean_list.append(token)
-    print('3 >>> {}'.format(clean_list))
+    #print('3 >>> {}'.format(clean_list))
 
     # 2-3. Length 1 이하인 token 제거
     #len_filer_list = []
@@ -64,37 +64,36 @@ for i, sentence in enumerate(sentence_list):
 
     # lambda식을 활용한 Code
     len_filter_list = list(filter(lambda x: len(x) > 1, clean_list))
-    print('4 >>>> {}'.format(len_filter_list))
+    #print('4 >>>> {}'.format(len_filter_list))
 
     # 2-4.(')포함 된 Token 제거
     clean_filter_list = list(filter(lambda x: "'" not in x, len_filter_list))
-    print('5 >>>>> {}'.format(clean_filter_list))
+    #print('5 >>>>> {}'.format(clean_filter_list))
 
     # 2-5.('-')포함 된 Token 제거
     clean_list = list(filter(lambda x: "-" not in x, clean_filter_list))
-    print('6 >>>>>> {}'.format(clean_list))
+    #print('6 >>>>>> {}'.format(clean_list))
     words.extend(clean_list)
 
 #3.빈도수 순으로 나열 및 시각화
-print('===========================')
-print('Total word count: {}'.format(len(words)))
+#print('===========================')
+#print('Total word count: {}'.format(len(words)))
 
 #전체 단어 수 출력
-print('word count after removing duplicates: {}'.format(len(list(set(words)))))
+#print('word count after removing duplicates: {}'.format(len(list(set(words)))))
 
 unique_words = sorted(list(set(words)))
-print(unique_words)
+#print(unique_words)
 
 #빈도수 가장 높은 단어 1~20위 출력
 text = nltk.Text(words, name='NMSC') #중복 제거 전 단어장 입력으로 사용
 
-pprint.pprint(text.vocab().most_common(20))
+#pprint.pprint(text.vocab().most_common(20))
 
 #4.다음 영어사전 단어정보 수집 및 매칭
 def get_dict(word):
-    time.sleep(1)
+    time.sleep(0.1)
     url = ('https://dic.daum.net/word/view.do?q={}'.format(word))
-
     result = requests.get(url)
     doc = BeautifulSoup(result.text, 'html.parser')
     meaning_list = doc.select('div.cleanword_type ul.list_search > li')
@@ -121,6 +120,21 @@ pprint.pprint(total_dict_list)
 #5.Excel로 저장
 col_names = ['word', 'mean_1', 'mean_2', 'mean_3', 'mean_4', 'mean_5']
 df_dict = pd.DataFrame(total_dict_list, columns=col_names)
-df.dict.to_excel('words.xlsx', index=False)
+#print(df_dict)
+df_dict.to_excel('words.xlsx', index=False)
+
 
 #6.Wordcloud로 시각화
+#mask 만들기
+circle_mask = np.array(Image.open("imgs/circle.png"))
+cnu_mask = np.array(Image.open("imgs/cnu_text.png"))
+wc = WordCloud(mask=cnu_mask,
+               background_color='white',
+               width=1000,
+               height=500,
+               max_words=600,
+               max_font_size=50)
+
+fd_names = nltk.FreqDist(words)
+wc.generate_from_frequencies(fd_names)
+wc.to_file('wordcloud2.png')
